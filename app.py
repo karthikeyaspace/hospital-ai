@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import (
-    Application,
+    ApplicationBuilder,
     CommandHandler,
     MessageHandler,
     filters,
@@ -16,9 +16,8 @@ TELEGRAM_BOT_USERNAME = env['TELEGRAM_BOT_USERNAME']
 
 class Bot:
     def __init__(self):
-        self.token = TELEGRAM_ACCESS_TOKEN
-        self.bot_username = TELEGRAM_BOT_USERNAME
-        self.app = Application.builder().token(self.token).build()
+        self.app = ApplicationBuilder().token(
+            TELEGRAM_ACCESS_TOKEN).read_timeout(30).write_timeout(30).build()
         self.ai = AI()
 
     async def start(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -33,6 +32,8 @@ class Bot:
         )
         await update.message.reply_text(welcome_message)
 
+    # todo - usage of commands(interactive manner)
+
     async def book_appointment(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Please provide the time of the appointment.")
 
@@ -42,29 +43,35 @@ class Bot:
     async def report_emergency(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Please provide the details of the emergency.")
 
+    # handling general user message - not commands
+
     async def handle_message(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         message_type = update.message.chat.type
         text = update.message.text
+        id = update.message.chat.id
 
-        print(f"User ({update.message.chat.id}) in {message_type}: {text}")
+        print(f"User ({id}) in {message_type}: {text}")
 
         if message_type == "private":
-            response = await self.ai.respond(text)
+            response = await self.ai.interact(str(id), text)
             await update.message.reply_text(response)
         else:
             await update.message.reply_text("I'm sorry, I only work in private chats.")
 
+    # error handler - mainly due to network or server
     async def handle_error(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
-        print(f"An error occurred: {context.error}")
+        print(f"An error occurred @app.py.handle_error: {context.error}")
         await update.message.reply_text("An error occurred. Please try again later.")
 
     def setup_handlers(self):
         # Command handlers
         self.app.add_handler(CommandHandler("start", self.start))
         self.app.add_handler(CommandHandler("help", self.start))
-        self.app.add_handler(CommandHandler("bookappointment", self.book_appointment))
+        self.app.add_handler(CommandHandler(
+            "bookappointment", self.book_appointment))
         self.app.add_handler(CommandHandler("getreport", self.get_report))
-        self.app.add_handler(CommandHandler("emergency", self.report_emergency))
+        self.app.add_handler(CommandHandler(
+            "emergency", self.report_emergency))
 
         # Message handler
         self.app.add_handler(MessageHandler(
