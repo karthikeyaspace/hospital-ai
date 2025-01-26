@@ -84,7 +84,7 @@ class Bot:
         print("Starting bot...")
         self.setup_handlers()
         print("Polling...")
-        self.app.run_polling(poll_interval=3)
+        self.app.run_polling(poll_interval=1)
 
 
 if __name__ == "__main__":
