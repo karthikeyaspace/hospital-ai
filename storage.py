@@ -24,16 +24,16 @@ class Storage:
     # return all chats of user
     def get_past_messages(self, patient_id: str) -> Dict:
         if patient_id in self.conversations:
-            return self.conversations[patient_id][-1]
+            return str(self.conversations[patient_id])
         return None
 
 
     # add to appointments
-    def add_to_appointments(self, patient_id: str, time: str):
+    def add_to_appointments(self, patient_id: str, input: str):
         if patient_id in self.appointments:
             return f"Patient {patient_id} already has an appointment at {self.appointments[patient_id]['time']}."
-        self.appointments[patient_id] = {"time": time, "status": "scheduled"}
-        return f"Appointment booked successfully for {patient_id} at {time}."
+        self.appointments[patient_id] = {"time": input, "status": "scheduled"}
+        return f"Appointment booked successfully for {patient_id} at {input}."
 
     
     # add to emergencies
